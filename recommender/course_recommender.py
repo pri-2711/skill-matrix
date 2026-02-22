@@ -1,110 +1,52 @@
-import os
-import re
-import sys
 import argparse
+import psycopg2
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-
-
-DATA_FOLDER = r"C:\Users\Dell\OneDrive\Desktop\Minor"
-POWERBI_OUTPUT = r"C:\Users\Dell\OneDrive\Desktop\Minor\powerbi_courses_output.csv"
-
-
-
-
-COLUMN_ALIASES = {
-    "course_title": [
-        "course name", "course title", "title", "name"
-    ],
-    "short_description": [
-        "description", "summary", "short description", "course description"
-    ],
-    "skills": [
-        "skills", "associatedskills", "associated skills", "what you learn"
-    ],
-    "url": [
-        "url", "course url", "link"
-    ],
-    "course_level": [
-        "level", "difficulty", "course level"
-    ],
-    "platform": [
-        "platform", "provider", "site"
-    ]
+DB_CONFIG = {
+    "host": "localhost",
+    "database": "skill_matrix",
+    "user": "postgres",
+    "password": "postgres123",
+    "port": 5432
 }
 
+def fetch_courses_from_db():
+    conn = psycopg2.connect(**DB_CONFIG)
+    cursor = conn.cursor()
 
+    query = """
+    SELECT 
+        c.course_id,
+        c.course_title,
+        c.description,
+        c.level,
+        c.platform,
+        c.url,
+        STRING_AGG(s.skill_name, ', ') AS skills
+    FROM course c
+    LEFT JOIN course_skill cs ON c.course_id = cs.course_id
+    LEFT JOIN skill s ON cs.skill_id = s.skill_id
+    GROUP BY c.course_id
+    """
 
-def normalize_column_names(df):
-    df.columns = (
-        df.columns
-        .str.lower()
-        .str.strip()
-        .str.replace("_", " ")
-    )
-    return df
+    cursor.execute(query)
+    rows = cursor.fetchall()
 
+    columns = [desc[0] for desc in cursor.description]
+    df = pd.DataFrame(rows, columns=columns)
 
-def get_column(df, aliases):
-    for col in aliases:
-        if col in df.columns:
-            return df[col]
-    return pd.Series([""] * len(df))
+    cursor.close()
+    conn.close()
+
+    return df.fillna("")
 
 
 def normalize_skills(text):
     if not isinstance(text, str):
         return set()
-    parts = re.split(r"[,\|;/]+", text.lower())
-    return {p.strip() for p in parts if p.strip()}
-
-
-
-
-def load_all_datasets(folder):
-    all_courses = []
-
-    print(" Scanning folder:", folder)
-
-    for file in os.listdir(folder):
-        path = os.path.join(folder, file)
-
-        if file.lower().endswith(".csv"):
-            print(" Loading CSV:", file)
-            df = pd.read_csv(path)
-
-        elif file.lower().endswith((".xlsx", ".xls")):
-            print(" Loading Excel:", file)
-            df = pd.read_excel(path)
-
-        else:
-            continue
-
-        df = normalize_column_names(df)
-
-        unified = pd.DataFrame({
-            "course_title": get_column(df, COLUMN_ALIASES["course_title"]),
-            "short_description": get_column(df, COLUMN_ALIASES["short_description"]),
-            "skills": get_column(df, COLUMN_ALIASES["skills"]),
-            "url": get_column(df, COLUMN_ALIASES["url"]),
-            "course_level": get_column(df, COLUMN_ALIASES["course_level"]),
-            "platform": get_column(df, COLUMN_ALIASES["platform"])
-        })
-
-        unified["platform"] = unified["platform"].replace("", os.path.splitext(file)[0])
-        unified = unified.fillna("")
-
-        all_courses.append(unified)
-
-    if not all_courses:
-        print(" No datasets loaded.")
-        sys.exit(1)
-
-    return pd.concat(all_courses, ignore_index=True)
-
-
+    return {s.strip().lower() for s in text.split(",") if s.strip()}
 
 
 def main():
@@ -114,17 +56,18 @@ def main():
     parser.add_argument("--top-k", type=int, default=5)
     args = parser.parse_args()
 
-    df = load_all_datasets(DATA_FOLDER)
-    print(f"\n Total courses loaded: {len(df)}")
+    df = fetch_courses_from_db()
+    print(f"\nTotal courses loaded from DB: {len(df)}")
 
     current_skills = args.current_skills or input("Enter current skills: ")
     goal = args.goal or input("Enter career goal: ")
 
     user_skills = normalize_skills(current_skills)
 
+    # Build course text
     df["combined_text"] = (
         df["course_title"] + " " +
-        df["short_description"] + " " +
+        df["description"] + " " +
         df["skills"]
     )
 
@@ -136,18 +79,27 @@ def main():
 
     course_vectors = vectorizer.fit_transform(df["combined_text"])
 
-    goal_text = goal + " " + " ".join(user_skills)
-    goal_vector = vectorizer.transform([goal_text])
+    # IMPORTANT CHANGE:
+    # Use ONLY goal for similarity
+    goal_vector = vectorizer.transform([goal])
 
     df["goal_score"] = cosine_similarity(goal_vector, course_vectors)[0]
     df["skills_set"] = df["skills"].apply(normalize_skills)
 
+    # Find skills needed for goal
     top_goal_courses = df.sort_values("goal_score", ascending=False).head(10)
     goal_skills = set().union(*top_goal_courses["skills_set"])
+
+    # Detect missing skills
     missing_skills = goal_skills - user_skills
 
     df["missing_skill_score"] = df["skills_set"].apply(
         lambda s: len(s & missing_skills)
+    )
+
+    # Penalize known skills
+    df["known_skill_overlap"] = df["skills_set"].apply(
+        lambda s: len(s & user_skills)
     )
 
     candidates = df[df["missing_skill_score"] > 0]
@@ -156,41 +108,19 @@ def main():
         candidates = df.sort_values("goal_score", ascending=False)
     else:
         candidates = candidates.sort_values(
-            by=["missing_skill_score", "goal_score"],
-            ascending=[False, False]
+            by=["missing_skill_score", "goal_score", "known_skill_overlap"],
+            ascending=[False, False, True]
         )
 
     recommended = candidates.head(args.top_k)
 
-    
-
-    os.makedirs(os.path.dirname(POWERBI_OUTPUT), exist_ok=True)
-
-    powerbi_df = df[[
-        "course_title",
-        "platform",
-        "course_level",
-        "goal_score",
-        "missing_skill_score",
-        "skills",
-        "url"
-    ]].sort_values("goal_score", ascending=False)
-
-    powerbi_df.to_csv(POWERBI_OUTPUT, index=False)
-
-    print("\n Power BI dataset exported to:")
-    print(POWERBI_OUTPUT)
-
-    
-
-    print("\n Recommended Courses:\n")
+    print("\nRecommended Courses:\n")
     for _, row in recommended.iterrows():
         print(row["course_title"])
-        print(" Platform :", row["platform"])
-        print(" Level    :", row["course_level"])
-        print(" Relevance:", round(row["goal_score"], 4))
+        print("Platform :", row["platform"])
+        print("Level    :", row["level"])
+        print("Relevance:", round(row["goal_score"], 4))
         print("-" * 60)
-
 
 if __name__ == "__main__":
     main()
