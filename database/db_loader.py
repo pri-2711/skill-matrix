@@ -10,6 +10,25 @@ def get_connection():
         port="5432"
     )
 
+def standardize_platforms(conn):
+    cur = conn.cursor()
+
+    platform_map = {
+        'udemy': 'Udemy',
+        'coursera': 'Coursera',
+        'edx': 'edX',
+        'skillshare': 'Skillshare'
+    }
+
+    for key, value in platform_map.items():
+        cur.execute("""
+            UPDATE course
+            SET platform = %s
+            WHERE platform ILIKE %s;
+        """, (value, f"%{key}%"))
+
+    conn.commit()
+    cur.close()
 
 def insert_dataframe(df, table_name):
     conn = get_connection()
@@ -25,8 +44,6 @@ def insert_dataframe(df, table_name):
                 values.append(v.item())
             else:
                 values.append(v)
-
-
         query = f"""
         INSERT INTO {table_name} ({",".join(columns)})
         VALUES ({",".join(["%s"]*len(values))})
@@ -36,6 +53,9 @@ def insert_dataframe(df, table_name):
         cur.execute(query, values)
 
     conn.commit()
+    if table_name == "course":
+        standardize_platforms(conn)
+
     cur.close()
     conn.close()
 # if __name__ == "__main__":

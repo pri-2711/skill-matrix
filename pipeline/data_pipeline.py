@@ -39,9 +39,38 @@ def get_column(df, aliases):
 def normalize_skills(text):
     if not isinstance(text, str):
         return ""
-    parts = re.split(r"[,\|;/]+", text.lower())
-    return ", ".join(sorted({p.strip() for p in parts if p.strip()}))
 
+    text = re.sub(r"[\[\]\{\}\'\"]", "", text)
+
+    parts = re.split(r"[,\|;/]+", text.lower())
+
+    clean_parts = []
+
+    for p in parts:
+        p = p.strip()
+
+        #Remove anything containing review
+        if "review" in p:
+            continue
+
+        #Remove rating words
+        if "star" in p:
+            continue
+
+        #Remove number-heavy tokens
+        if re.search(r"\d", p):
+            continue
+
+        #Remove very short junk
+        if len(p) <= 2:
+            continue
+
+        p = re.sub(r"\s+", " ", p)
+
+        if p:
+            clean_parts.append(p)
+
+    return ", ".join(sorted(set(clean_parts)))
 def parse_number(val):
     if not isinstance(val, str):
         return val
