@@ -47,6 +47,69 @@ def ensure_schema():
     );
     """)
 
+    # ---- USER SKILL TABLE ----
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS user_skill (
+        id SERIAL PRIMARY KEY,
+        skill_name TEXT NOT NULL,
+        proficiency_level TEXT DEFAULT 'Beginner',
+        created_at TIMESTAMP DEFAULT NOW()
+    );
+    """)
+
+    # ---- USER PROGRESS TABLE ----
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS user_progress (
+        id SERIAL PRIMARY KEY,
+        skill_name TEXT NOT NULL,
+        current_level TEXT,
+        target_level TEXT,
+        progress_percent INT DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT NOW()
+    );
+    """)
+
+    # ---- CERTIFICATE TABLE ----
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS certificate (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        issuer TEXT,
+        issue_date DATE,
+        expiry_date DATE,
+        credential_url TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+    );
+    """)
+
+    # ---- PROJECT TABLE ----
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS project (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        tech_stack TEXT,
+        role TEXT,
+        start_date DATE,
+        end_date DATE,
+        url TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+    );
+    """)
+
+    # ---- RESUME TABLE ----
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS resume (
+        id SERIAL PRIMARY KEY,
+        title TEXT,
+        summary TEXT,
+        skills_json TEXT,
+        certificates_json TEXT,
+        projects_json TEXT,
+        generated_at TIMESTAMP DEFAULT NOW()
+    );
+    """)
+
     conn.commit()
     cur.close()
     conn.close()

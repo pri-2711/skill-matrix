@@ -1,15 +1,37 @@
+import { useState, useEffect } from 'react'
 import { TrendingUp } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-
-const progressData = [
-  { month: 'Jun', Node: 60, Python: 55, React: 75, TypeScript: 65 },
-  { month: 'Jul', Node: 62, Python: 58, React: 78, TypeScript: 70 },
-  { month: 'Aug', Node: 66, Python: 60, React: 82, TypeScript: 73 },
-  { month: 'Sep', Node: 68, Python: 63, React: 85, TypeScript: 77 },
-  { month: 'Oct', Node: 70, Python: 65, React: 88, TypeScript: 80 },
-]
+import api from '../api/apiClient'
 
 const Progress = () => {
+  const [progressList, setProgressList] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchProgress = async () => {
+    try {
+      const data = await api.get('/progress')
+      setProgressList(data)
+    } catch (err) {
+      console.error('Failed to fetch progress:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchProgress() }, [])
+
+  const handleUpdate = async (id, newPercent) => {
+    try {
+      await api.put(`/progress/${id}`, { progress_percent: newPercent })
+      fetchProgress()
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64 text-gray-400">Loading progress…</div>
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -24,79 +46,53 @@ const Progress = () => {
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Progress Tracking</h3>
-            <p className="text-sm text-gray-500">Your skill improvement over the last 5 months</p>
+            <p className="text-sm text-gray-500">Your skill improvement progress</p>
           </div>
         </div>
 
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={progressData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis dataKey="month" stroke="#6B7280" />
-              <YAxis domain={[0, 100]} stroke="#6B7280" />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'white', 
-                  border: '1px solid #E5E7EB', 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }} 
-              />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="Node" 
-                stroke="#F97316" 
-                strokeWidth={2}
-                dot={{ fill: '#F97316', strokeWidth: 2 }}
-                activeDot={{ r: 6 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="Python" 
-                stroke="#10B981" 
-                strokeWidth={2}
-                dot={{ fill: '#10B981', strokeWidth: 2 }}
-                activeDot={{ r: 6 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="React" 
-                stroke="#3B82F6" 
-                strokeWidth={2}
-                dot={{ fill: '#3B82F6', strokeWidth: 2 }}
-                activeDot={{ r: 6 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="TypeScript" 
-                stroke="#8B5CF6" 
-                strokeWidth={2}
-                dot={{ fill: '#8B5CF6', strokeWidth: 2 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="flex justify-center gap-6 mt-4">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-            <span className="text-sm text-gray-600">Node.js</span>
+        {progressList.length === 0 ? (
+          <div className="text-center py-12 text-gray-400">
+            <TrendingUp size={48} className="mx-auto mb-3 opacity-40" />
+            <p>No progress records yet.</p>
+            <p className="text-sm mt-1">Add skills and start tracking your learning journey!</p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-            <span className="text-sm text-gray-600">Python</span>
+        ) : (
+          <div className="space-y-6">
+            {progressList.map((item) => {
+              const colors = ['#3B82F6', '#8B5CF6', '#10B981', '#F97316', '#EF4444', '#06B6D4']
+              const color = colors[item.id % colors.length]
+              return (
+                <div key={item.id} className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <h4 className="font-medium text-gray-900">{item.skill_name}</h4>
+                      <p className="text-xs text-gray-500">
+                        {item.current_level || '–'} → {item.target_level || '–'}
+                      </p>
+                    </div>
+                    <span className="text-sm font-bold" style={{ color }}>
+                      {item.progress_percent}%
+                    </span>
+                  </div>
+                  <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${item.progress_percent}%`, backgroundColor: color }}
+                    />
+                  </div>
+                  <input
+                    type="range"
+                    className="w-full mt-2"
+                    min="0"
+                    max="100"
+                    value={item.progress_percent}
+                    onChange={(e) => handleUpdate(item.id, parseInt(e.target.value))}
+                  />
+                </div>
+              )
+            })}
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span className="text-sm text-gray-600">React</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-violet-500"></div>
-            <span className="text-sm text-gray-600">TypeScript</span>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )

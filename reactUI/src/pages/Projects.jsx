@@ -1,65 +1,80 @@
-import { useState } from 'react'
-import { FolderKanban, Plus, Calendar, ExternalLink } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { FolderKanban, Plus, Calendar, ExternalLink, Trash2 } from 'lucide-react'
 import Modal from '../components/Modal'
+import api from '../api/apiClient'
 
-const initialProjects = [
-  {
-    id: 1,
-    name: 'E-commerce Platform',
-    description: 'A full-stack e-commerce platform with payment integration',
-    startDate: 'Jun 2024',
-    endDate: 'Sep 2024',
-    status: 'Completed',
-    skills: ['React', 'Node.js', 'SQL'],
-    icon: 'bg-blue-100 text-blue-600'
-  },
-  {
-    id: 2,
-    name: 'AI Chat Application',
-    description: 'Real-time chat application with AI-powered responses',
-    startDate: 'Oct 2024',
-    endDate: 'Present',
-    status: 'In Progress',
-    skills: ['TypeScript', 'Python'],
-    icon: 'bg-purple-100 text-purple-600'
-  }
+const iconColors = [
+  'bg-blue-100 text-blue-600',
+  'bg-purple-100 text-purple-600',
+  'bg-green-100 text-green-600',
+  'bg-orange-100 text-orange-600',
 ]
 
 const Projects = () => {
-  const [projects, setProjects] = useState(initialProjects)
+  const [projects, setProjects] = useState([])
+  const [loading, setLoading] = useState(true)
   const [showAddProject, setShowAddProject] = useState(false)
-  const [newProject, setNewProject] = useState({ 
-    name: '', 
-    description: '', 
-    startDateRaw: '', 
-    endDateRaw: '', 
+  const [newProject, setNewProject] = useState({
+    name: '',
+    description: '',
+    startDateRaw: '',
+    endDateRaw: '',
     status: 'In Progress',
-    skills: ''
+    skills: '',
+    url: '',
   })
 
-  const handleAddProject = (e) => {
-    e.preventDefault()
-    const colors = ['bg-blue-100 text-blue-600', 'bg-purple-100 text-purple-600', 'bg-green-100 text-green-600', 'bg-orange-100 text-orange-600']
-    const randomColor = colors[Math.floor(Math.random() * colors.length)]
-    const skillList = newProject.skills.split(',').map(s => s.trim()).filter(s => s)
-    
-    const formatDate = (rawDate) => {
-      if (!rawDate) return 'Present'
-      const date = new Date(rawDate + '-01')
-      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+  const fetchProjects = async () => {
+    try {
+      const data = await api.get('/projects')
+      setProjects(data)
+    } catch (err) {
+      console.error('Failed to fetch projects:', err)
+    } finally {
+      setLoading(false)
     }
-    
-    setProjects([...projects, { 
-      name: newProject.name,
-      description: newProject.description,
-      startDate: formatDate(newProject.startDateRaw),
-      endDate: formatDate(newProject.endDateRaw),
-      status: newProject.status,
-      icon: randomColor,
-      skills: skillList
-    }])
-    setNewProject({ name: '', description: '', startDateRaw: '', endDateRaw: '', status: 'In Progress', skills: '' })
-    setShowAddProject(false)
+  }
+
+  useEffect(() => { fetchProjects() }, [])
+
+  const handleAddProject = async (e) => {
+    e.preventDefault()
+    try {
+      await api.post('/projects', {
+        title: newProject.name,
+        description: newProject.description,
+        tech_stack: newProject.skills,
+        role: newProject.status,
+        start_date: newProject.startDateRaw ? `${newProject.startDateRaw}-01` : null,
+        end_date: newProject.endDateRaw ? `${newProject.endDateRaw}-01` : null,
+        url: newProject.url || null,
+      })
+      setNewProject({ name: '', description: '', startDateRaw: '', endDateRaw: '', status: 'In Progress', skills: '', url: '' })
+      setShowAddProject(false)
+      fetchProjects()
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (!confirm('Delete this project?')) return
+    try {
+      await api.del(`/projects/${id}`)
+      fetchProjects()
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
+  const formatDate = (iso) => {
+    if (!iso) return 'Present'
+    const d = new Date(iso)
+    return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+  }
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64 text-gray-400">Loading projects…</div>
   }
 
   return (
@@ -75,7 +90,7 @@ const Projects = () => {
             <h3 className="text-lg font-semibold text-gray-900">Projects</h3>
             <p className="text-sm text-gray-500">Track your projects and applied skills</p>
           </div>
-          <button 
+          <button
             onClick={() => setShowAddProject(true)}
             className="flex items-center justify-center w-10 h-10 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
           >
@@ -83,51 +98,77 @@ const Projects = () => {
           </button>
         </div>
 
-        <div className="space-y-4">
-          {projects.map((project) => (
-            <div key={project.id} className="p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4">
-                  <div className={`w-10 h-10 ${project.icon} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                    <FolderKanban size={20} />
-                  </div>
-                  <div>
+        {projects.length === 0 ? (
+          <p className="text-center text-gray-400 py-8">No projects yet. Add your first!</p>
+        ) : (
+          <div className="space-y-4">
+            {projects.map((project, idx) => {
+              const skillList = project.tech_stack
+                ? project.tech_stack.split(',').map((s) => s.trim()).filter(Boolean)
+                : []
+              const status = project.role || 'In Progress'
+
+              return (
+                <div key={project.id} className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className={`w-10 h-10 ${iconColors[idx % iconColors.length]} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                        <FolderKanban size={20} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-gray-900">{project.title}</h4>
+                          {project.url && (
+                            <a href={project.url} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink size={14} className="text-gray-400 hover:text-gray-600" />
+                            </a>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1">{project.description}</p>
+                        <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                          <Calendar size={12} />
+                          <span>{formatDate(project.start_date)} - {formatDate(project.end_date)}</span>
+                        </div>
+                        {skillList.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            {skillList.map((skill, i) => (
+                              <span key={i} className="text-xs px-2 py-1 bg-white border border-gray-200 rounded-md">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     <div className="flex items-center gap-2">
-                      <h4 className="font-medium text-gray-900">{project.name}</h4>
-                      <ExternalLink size={14} className="text-gray-400 cursor-pointer hover:text-gray-600" />
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">{project.description}</p>
-                    <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                      <Calendar size={12} />
-                      <span>{project.startDate} - {project.endDate}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {project.skills.map((skill, index) => (
-                        <span key={index} className="text-xs px-2 py-1 bg-white border border-gray-200 rounded-md">
-                          {skill}
-                        </span>
-                      ))}
+                      <span className={`text-xs px-3 py-1 rounded-full ${
+                        status === 'Completed'
+                          ? 'bg-green-100 text-green-600'
+                          : 'bg-blue-100 text-blue-600'
+                      }`}>
+                        {status}
+                      </span>
+                      <button
+                        onClick={() => handleDelete(project.id)}
+                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
                 </div>
-                <span className={`text-xs px-3 py-1 rounded-full ${
-                  project.status === 'Completed' 
-                    ? 'bg-green-100 text-green-600' 
-                    : 'bg-blue-100 text-blue-600'
-                }`}>
-                  {project.status}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       <Modal isOpen={showAddProject} onClose={() => setShowAddProject(false)} title="Add New Project">
         <form onSubmit={handleAddProject} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
-            <input 
+            <input
               type="text"
               required
               value={newProject.name}
@@ -150,7 +191,7 @@ const Projects = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-              <input 
+              <input
                 type="month"
                 required
                 value={newProject.startDateRaw}
@@ -159,8 +200,8 @@ const Projects = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">End Date (leave blank if ongoing)</label>
-              <input 
+              <label className="block text-sm font-medium text-gray-700 mb-1">End Date (blank = ongoing)</label>
+              <input
                 type="month"
                 value={newProject.endDateRaw}
                 onChange={(e) => setNewProject({ ...newProject, endDateRaw: e.target.value })}
@@ -182,7 +223,7 @@ const Projects = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Skills Used (comma-separated)</label>
-            <input 
+            <input
               type="text"
               value={newProject.skills}
               onChange={(e) => setNewProject({ ...newProject, skills: e.target.value })}
@@ -190,7 +231,7 @@ const Projects = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          <button 
+          <button
             type="submit"
             className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
