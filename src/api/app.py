@@ -6,7 +6,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_cors import CORS
 
 from src.api.routes.skills import skills_bp
@@ -21,6 +21,14 @@ from database.schema_manager import ensure_schema
 def create_app():
     app = Flask(__name__)
     CORS(app)
+    
+    app.upload_folder = os.path.join(PROJECT_ROOT, "static", "uploads")
+    os.makedirs(app.upload_folder, exist_ok=True)
+
+    # Serve uploaded files
+    @app.route("/uploads/<path:filename>")
+    def uploaded_file(filename):
+        return send_from_directory(app.upload_folder, filename)
 
     # Ensure database schema exists
     try:

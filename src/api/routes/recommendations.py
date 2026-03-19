@@ -71,15 +71,25 @@ def get_recommendations():
     )
 
     df["final_score"] = (
-        0.35 * df["goal_score"]
+        0.30 * df["goal_score"]
         + 0.25 * df["missing_skill_score"]
-        + 0.20 * df["domain_score"]
-        + 0.15 * df["keyword_overlap"]
-        + 0.15 * df["phrase_match"]
+        + 0.15 * df["domain_score"]
+        + 0.10 * df["keyword_overlap"]
+        + 0.10 * df["phrase_match"]
         - 0.10 * df["known_skill_overlap"]
     )
 
-    recommended = df.sort_values("final_score", ascending=False).head(top_k)
+    # Boost score significantly if the goal keywords are present in the course title
+    goal_words = extract_keywords(goal)
+    if goal_words:
+        df["title_boost"] = df["course_title"].apply(
+            lambda title: len(extract_keywords(title) & goal_words) / len(goal_words)
+        )
+        # Add up to 0.4 bonus for exact/partial title matches
+        df["final_score"] += 0.40 * df["title_boost"]
+
+    # Sort, drop duplicates by course_title, take top K
+    recommended = df.sort_values("final_score", ascending=False).drop_duplicates(subset=["course_title"], keep="first").head(top_k)
 
     results = []
     for _, row in recommended.iterrows():

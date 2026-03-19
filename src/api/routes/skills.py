@@ -97,7 +97,7 @@ def update_skill(skill_id):
 def delete_skill(skill_id):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("DELETE FROM user_skill WHERE id = %s RETURNING id", (skill_id,))
+    cur.execute("DELETE FROM user_skill WHERE id = %s RETURNING id, skill_name", (skill_id,))
     row = cur.fetchone()
     conn.commit()
     cur.close()

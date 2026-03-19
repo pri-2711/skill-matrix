@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { FolderKanban, Plus, Calendar, ExternalLink, Trash2 } from 'lucide-react'
+import { FolderKanban, Plus, Calendar, ExternalLink, Trash2, Edit2 } from 'lucide-react'
 import Modal from '../components/Modal'
 import api from '../api/apiClient'
 
@@ -13,7 +13,8 @@ const iconColors = [
 const Projects = () => {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
-  const [showAddProject, setShowAddProject] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingId, setEditingId] = useState(null)
   const [newProject, setNewProject] = useState({
     name: '',
     description: '',
@@ -37,10 +38,30 @@ const Projects = () => {
 
   useEffect(() => { fetchProjects() }, [])
 
-  const handleAddProject = async (e) => {
+  const openAddModal = () => {
+    setNewProject({ name: '', description: '', startDateRaw: '', endDateRaw: '', status: 'In Progress', skills: '', url: '' })
+    setEditingId(null)
+    setIsModalOpen(true)
+  }
+
+  const openEditModal = (project) => {
+    setNewProject({ 
+      name: project.title, 
+      description: project.description, 
+      startDateRaw: project.start_date ? project.start_date.substring(0, 7) : '', 
+      endDateRaw: project.end_date ? project.end_date.substring(0, 7) : '', 
+      status: project.role || 'In Progress', 
+      skills: project.tech_stack || '', 
+      url: project.url || '' 
+    })
+    setEditingId(project.id)
+    setIsModalOpen(true)
+  }
+
+  const handleSaveProject = async (e) => {
     e.preventDefault()
     try {
-      await api.post('/projects', {
+      const payload = {
         title: newProject.name,
         description: newProject.description,
         tech_stack: newProject.skills,
@@ -48,9 +69,14 @@ const Projects = () => {
         start_date: newProject.startDateRaw ? `${newProject.startDateRaw}-01` : null,
         end_date: newProject.endDateRaw ? `${newProject.endDateRaw}-01` : null,
         url: newProject.url || null,
-      })
-      setNewProject({ name: '', description: '', startDateRaw: '', endDateRaw: '', status: 'In Progress', skills: '', url: '' })
-      setShowAddProject(false)
+      }
+      
+      if (editingId) {
+        await api.put(`/projects/${editingId}`, payload)
+      } else {
+        await api.post('/projects', payload)
+      }
+      setIsModalOpen(false)
       fetchProjects()
     } catch (err) {
       alert(err.message)
@@ -91,7 +117,7 @@ const Projects = () => {
             <p className="text-sm text-gray-500">Track your projects and applied skills</p>
           </div>
           <button
-            onClick={() => setShowAddProject(true)}
+            onClick={openAddModal}
             className="flex items-center justify-center w-10 h-10 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
           >
             <Plus size={20} />
@@ -149,6 +175,13 @@ const Projects = () => {
                         {status}
                       </span>
                       <button
+                        onClick={() => openEditModal(project)}
+                        className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+                        title="Edit"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
                         onClick={() => handleDelete(project.id)}
                         className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                         title="Delete"
@@ -164,8 +197,8 @@ const Projects = () => {
         )}
       </div>
 
-      <Modal isOpen={showAddProject} onClose={() => setShowAddProject(false)} title="Add New Project">
-        <form onSubmit={handleAddProject} className="space-y-4">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Edit Project" : "Add New Project"}>
+        <form onSubmit={handleSaveProject} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
             <input
@@ -231,11 +264,21 @@ const Projects = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Project Link (GitHub / Live URL)</label>
+            <input
+              type="url"
+              value={newProject.url}
+              onChange={(e) => setNewProject({ ...newProject, url: e.target.value })}
+              placeholder="https://github.com/username/project"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
           <button
             type="submit"
             className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Add Project
+            {editingId ? "Save Changes" : "Add Project"}
           </button>
         </form>
       </Modal>

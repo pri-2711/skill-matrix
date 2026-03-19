@@ -1,7 +1,25 @@
-from flask import Blueprint, request, jsonify
+import os
+from flask import Blueprint, request, jsonify, current_app
+from werkzeug.utils import secure_filename
 from src.api.config import get_connection
 
 certificates_bp = Blueprint("certificates", __name__)
+
+def parse_cert_request():
+    data = {}
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = dict(request.form)
+        file = request.files.get("file")
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            upload_folder = getattr(current_app, "upload_folder", "static/uploads")
+            os.makedirs(upload_folder, exist_ok=True)
+            file_path = os.path.join(upload_folder, filename)
+            file.save(file_path)
+            data["credential_url"] = f"/uploads/{filename}"
+    return data
 
 
 # ── GET /api/certificates ───────────────────────────────────
@@ -35,7 +53,7 @@ def get_certificates():
 # ── POST /api/certificates ──────────────────────────────────
 @certificates_bp.route("/api/certificates", methods=["POST"])
 def add_certificate():
-    data = request.get_json()
+    data = parse_cert_request()
     if not data or not data.get("title"):
         return jsonify({"error": "title is required"}), 400
 
@@ -72,7 +90,7 @@ def add_certificate():
 # ── PUT /api/certificates/<id> ──────────────────────────────
 @certificates_bp.route("/api/certificates/<int:cert_id>", methods=["PUT"])
 def update_certificate(cert_id):
-    data = request.get_json()
+    data = parse_cert_request()
     if not data:
         return jsonify({"error": "Request body is required"}), 400
 
