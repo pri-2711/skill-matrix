@@ -1,0 +1,10 @@
+1. Open CMD -> Run as Administrator 
+2. D:
+3. MINOR-PROJECT\skill_matrix
+4. python src/api/app.py      ----> to run Flask Server
+5. Again open another CMD (as Administrator)
+6. D:
+7. MINOR-PROJECT\skill_matrix\reactUI
+8. npm run dev        -----> to application 
+
+Note: above commands will change according to changes in file location but Step 4, 8 need to be executed in separate terminals in order to run the application 
