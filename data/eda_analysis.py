@@ -67,38 +67,3 @@ sns.heatmap(
 )
 plt.title("Correlation Heatmap")
 plt.show()
-
-print("\n===== EDA EXPLANATION =====\n")
-
-print("1. RATING DISTRIBUTION")
-print("- Most courses are rated between 4 and 5")
-print("- Indicates generally positive user feedback\n")
-
-print("2. DURATION DISTRIBUTION")
-print("- Most courses are short, with fewer long-duration courses")
-print("- This right-skewed pattern is common in real-world data\n")
-
-print("3. SCATTER PLOTS")
-print("- Each dot represents one course")
-print("- Used to understand relationships between variables\n")
-
-print("4. RATING vs REVIEW COUNT")
-print("- X-axis uses log scale of review count")
-print("- Log scale compresses large values (e.g., 10 to 100000) for better visualization")
-print("- Slight positive trend → more popular courses tend to have slightly higher ratings\n")
-
-print("5. RATING vs DURATION")
-print("- No strong relationship observed between duration and rating")
-print("- Course length does not significantly affect ratings\n")
-
-print("6. DOT SHADING (TRANSPARENCY)")
-print("- Darker regions indicate higher concentration of courses")
-print("- Lighter regions indicate fewer data points\n")
-
-print("7. CORRELATION HEATMAP")
-print("- Shows weak correlation between variables")
-print("- This is expected as rating, duration, and popularity are mostly independent\n")
-
-print("FINAL CONCLUSION")
-print("- Data shows realistic patterns and distributions")
-print("- Suitable for further analysis and modeling\n")

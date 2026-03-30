@@ -1,3 +1,5 @@
+This file is to explain eda_analysis.py file 
+EDA - Exploratory Data Analysis
 ==================== EDA EXPLANATION ====================
 
 1. Rating Distribution
