@@ -24,7 +24,7 @@ def ensure_schema():
         platform TEXT,
         rating DOUBLE PRECISION,
         review_count BIGINT,
-        duration TEXT
+        duration_minutes INT
     );
     """)
 

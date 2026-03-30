@@ -14,7 +14,7 @@ def build_entities(df):
         "platform",
         "rating",
         "review_count",
-        "duration"
+        "duration_minutes"
     ]].copy()
 
     # Remove duplicate courses

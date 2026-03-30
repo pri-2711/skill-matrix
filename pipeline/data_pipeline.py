@@ -140,7 +140,8 @@ def load_and_normalize():
         # --- Numeric Cleaning ---
         unified["review_count"] = unified["review_count"].apply(parse_number)
         unified["rating"] = pd.to_numeric(unified["rating"], errors="coerce")
-
+        unified["rating"] = unified["rating"].apply(normalize_rating)
+        unified["duration_minutes"] = unified["duration"].apply(convert_to_minutes)
         all_courses.append(unified)
 
     if not all_courses:
@@ -161,6 +162,64 @@ def export_for_review(df):
     df.to_excel(REVIEW_OUTPUT, index=False, engine="openpyxl")
     print(f"\nNormalized data exported to:\n{REVIEW_OUTPUT}")
 
+import re
+
+def convert_to_minutes(duration_str):
+    if not isinstance(duration_str, str) or duration_str.strip() == "":
+        return 0
+
+    duration_str = duration_str.lower()
+
+    # ---- CASE 1: QUESTIONS ----
+    if "question" in duration_str:
+        q_match = re.search(r'\d+', duration_str)
+        if q_match:
+            questions = int(q_match.group())
+            return questions * 2   # 2 mins per question
+
+    hours = 0
+    minutes = 0
+
+    # ---- CASE 2: HOURS ----
+    hr_match = re.search(r'(\d+(\.\d+)?)[^\d]*(h|hr|hrs|hour|hours)', duration_str)
+    if hr_match:
+        hours = float(hr_match.group(1))
+
+    # ---- CASE 3: MINUTES ----
+    min_match = re.search(r'(\d+)\s*(m|min|mins|minute|minutes)', duration_str)
+    if min_match:
+        minutes = int(min_match.group(1))
+
+    # ---- CASE 4: FALLBACK ----
+    if hours == 0 and minutes == 0:
+        num_match = re.search(r'\d+(\.\d+)?', duration_str)
+        if num_match:
+            val = float(num_match.group())
+            if '.' in num_match.group():
+                return int(val * 60)
+            else:
+                return int(val)
+
+    return int(hours * 60 + minutes)
+def normalize_rating(val):
+    if val is None:
+        return None
+
+    try:
+        val = float(val)
+
+        # Already valid rating
+        if val > 1:
+            return round(val, 2)
+
+        # Scaled but unrealistic → stretch
+        elif 0 <= val <= 1:
+            return round(2.5 + val * 2.5, 2)
+
+    except:
+        return None
+
+    return None
 
 # Standalone test run
 # if __name__ == "__main__":
