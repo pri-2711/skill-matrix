@@ -1,0 +1,43 @@
+==================== EDA EXPLANATION ====================
+
+1. Rating Distribution
+   - Most courses are rated between 4 and 5
+   - Indicates generally positive user feedback
+
+2. Duration Distribution
+   - Most courses are short in duration
+   - Few courses are very long
+   - This right-skewed pattern is common in real-world datasets
+
+3. Scatter Plots
+   - Each dot represents one course
+   - Used to analyze relationships between variables
+
+4. Rating vs Review Count
+   - X-axis uses log scale of review count
+   - Log scale compresses large values (e.g., 10 to 100000)
+   - Helps visualize data more clearly
+   - Slight positive trend observed:
+     More popular courses tend to have slightly higher ratings
+
+5. Rating vs Duration
+   - No strong relationship observed
+   - Course length does not significantly affect ratings
+
+6. Dot Shading (Transparency)
+   - Darker regions → many overlapping points (high density)
+   - Lighter regions → fewer data points
+   - Helps identify where most data is concentrated
+
+7. Correlation Heatmap
+   - Shows relationships between numerical variables
+   - All correlations are low (close to 0)
+   - Indicates variables are mostly independent
+
+-------------------- FINAL CONCLUSION --------------------
+
+- Data shows realistic patterns similar to real-world platforms
+- Ratings are mostly high (4–5 range)
+- Duration follows a right-skewed distribution
+- Relationships between variables are weak but logical
+- Dataset is clean and suitable for further analysis
