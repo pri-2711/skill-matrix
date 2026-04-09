@@ -187,13 +187,11 @@ def extract_full_page(driver) -> list[str]:
 # ---------- MAIN FUNCTION ----------
 def get_trending_skills() -> list[str]:
     options = uc.ChromeOptions()
-    options.add_argument("--start-maximized")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    # Removing headless mode to bypass Google anti-bot which was blocking the search
-    # options.add_argument("--headless=new") 
 
-    driver = uc.Chrome(options=options, use_subprocess=True)
+    # Use undetected-chromedriver's native headless mode to prevent taskbar icon
+    driver = uc.Chrome(options=options, headless=True, use_subprocess=True)
     atexit.register(lambda: _safe_quit(driver))
 
     try:
