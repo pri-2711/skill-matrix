@@ -10,7 +10,7 @@ DB_CONFIG = {
     "host": "localhost",
     "database": "skill_matrix",
     "user": "postgres",
-    "password": "postgres123",
+    "password": "maansi27",
     "port": 5432
 }
 

@@ -1,14 +1,22 @@
 import { useState } from 'react'
+import { useAuth } from './context/AuthContext'
 import Header from './components/Header'
 import Overview from './pages/Overview'
 import Skills from './pages/Skills'
 import Certifications from './pages/Certifications'
 import Projects from './pages/Projects'
 import AISuggestions from './pages/AISuggestions'
-import Progress from './pages/Progress'
+import MarketTrends from './pages/MarketTrends'
+import ResumeBuilder from './pages/ResumeBuilder'
+import Login from './pages/Login'
 
 function App() {
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('overview')
+
+  if (!user) {
+    return <Login />
+  }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -22,8 +30,10 @@ function App() {
         return <Projects />
       case 'ai-suggestions':
         return <AISuggestions />
-      case 'progress':
-        return <Progress />
+      case 'market-trends':
+        return <MarketTrends />
+      case 'resume-builder':
+        return <ResumeBuilder />
       default:
         return <Overview />
     }
@@ -40,3 +50,4 @@ function App() {
 }
 
 export default App
+

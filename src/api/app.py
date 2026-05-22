@@ -15,6 +15,7 @@ from src.api.routes.certificates import certificates_bp
 from src.api.routes.projects import projects_bp
 from src.api.routes.recommendations import recommendations_bp
 from src.api.routes.resume import resume_bp
+from src.api.routes.auth import auth_bp
 from database.schema_manager import ensure_schema
 
 
@@ -44,6 +45,7 @@ def create_app():
     app.register_blueprint(projects_bp)
     app.register_blueprint(recommendations_bp)
     app.register_blueprint(resume_bp)
+    app.register_blueprint(auth_bp)
 
     # Root index — shows all available endpoints
     @app.route("/", methods=["GET"])

@@ -2,8 +2,8 @@ import os
 import re
 import pandas as pd
 
-RAW_DATA_PATH = "D:/MINOR-PROJECT/skill_matrix/data/raw"
-REVIEW_OUTPUT = "D:/MINOR-PROJECT/skill_matrix/data/temp_review/temp_normalized_df.xlsx"
+RAW_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "raw")
+REVIEW_OUTPUT = os.path.join(os.path.dirname(__file__), "..", "data", "temp_review", "temp_normalized_df.xlsx")
 
 
 COLUMN_ALIASES = {

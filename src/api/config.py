@@ -3,7 +3,7 @@ import psycopg2
 DB_CONFIG = {
     "dbname": "skill_matrix",
     "user": "postgres",
-    "password": "postgres123",
+    "password": "maansi27",
     "host": "localhost",
     "port": "5432"
 }
