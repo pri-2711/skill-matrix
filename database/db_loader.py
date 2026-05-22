@@ -5,7 +5,7 @@ def get_connection():
     return psycopg2.connect(
         dbname="skill_matrix",
         user="postgres",
-        password="postgres123",
+        password="maansi27",
         host="localhost",
         port="5432"
     )

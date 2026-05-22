@@ -141,4 +141,7 @@ if __name__ == "__main__":
         if methods:
             print(f"    {methods:10s}  {rule.rule}")
     print()
-    app.run(debug=True, port=5000)
+    
+    port = int(os.environ.get("PORT", 5000))
+    # In production, we run with host 0.0.0.0 so external networks can connect
+    app.run(host="0.0.0.0", port=port, debug=(os.environ.get("FLASK_ENV") == "development" or os.environ.get("DATABASE_URL") is None))

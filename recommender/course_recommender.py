@@ -8,9 +8,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 DB_CONFIG = {
     "host": "localhost",
-    "database": "skill_matrix",
+    "dbname": "skill_matrix",
     "user": "postgres",
-    "password": "postgres123",
+    "password": "maansi27",
     "port": 5432
 }
 
@@ -67,7 +67,19 @@ IMPORTANT_PHRASES = [
 
 
 def fetch_courses_from_db():
-    conn = psycopg2.connect(**DB_CONFIG)
+    import os
+    db_url = os.environ.get("DATABASE_URL")
+    
+    os.environ.pop("PGUSER", None)
+    os.environ.pop("PGPASSWORD", None)
+    os.environ.pop("PGDATABASE", None)
+    os.environ.pop("PGHOST", None)
+    os.environ.pop("PGPORT", None)
+
+    if db_url:
+        conn = psycopg2.connect(db_url)
+    else:
+        conn = psycopg2.connect(**DB_CONFIG)
     cursor = conn.cursor()
 
     query = """

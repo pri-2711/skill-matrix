@@ -1,13 +1,21 @@
 import { useState, useEffect } from 'react'
 import {
   TrendingUp, Briefcase, DollarSign, Zap, ChevronRight,
-  Users, Globe, ArrowUpRight, RefreshCw, AlertCircle, Sparkles
+  Users, Globe, ArrowUpRight, RefreshCw, AlertCircle, Sparkles,
+  Code2, Palette, Dna
 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell
 } from 'recharts'
 import api from '../api/apiClient'
+
+const categoryIconMap = {
+  '💻': Code2,
+  '💼': Briefcase,
+  '🧬': Dna,
+  '🎨': Palette,
+}
 
 const colorMap = {
   blue:   { bg: 'bg-blue-50/50', border: 'border-blue-100',   badge: 'bg-blue-100 text-blue-700 border border-blue-200',     dot: 'bg-blue-500',   step: 'bg-blue-500'   },
@@ -32,7 +40,7 @@ const CustomTooltip = ({ active, payload }) => {
       <div className="bg-white/90 backdrop-blur-md border border-gray-100 rounded-xl shadow-xl px-4 py-2.5">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Hiring Segment</p>
         <p className="text-sm font-bold text-gray-800 mt-0.5">{payload[0].payload.domain}</p>
-        <p className="text-xs text-indigo-600 font-semibold mt-1">{(payload[0].value).toLocaleString()} active jobs</p>
+        <p className="text-xs text-black font-semibold mt-1">{(payload[0].value).toLocaleString()} active jobs</p>
       </div>
     )
   }
@@ -102,7 +110,7 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
-            <Sparkles className="text-indigo-600" size={24} />
+            <Sparkles className="text-neutral-900" size={24} />
             Career Intelligence Dashboard
           </h2>
           <p className="text-gray-500 text-sm mt-1">Real-time target benchmarks parsed through dynamic search analysis</p>
@@ -116,16 +124,16 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
       </div>
 
       {/* Goal Selector Form */}
-      <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-950 rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden border border-indigo-900/50">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full filter blur-3xl opacity-30 -mr-20 -mt-20"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-500/10 rounded-full filter blur-3xl opacity-30 -ml-20 -mb-20"></div>
+      <div className="bg-white rounded-2xl p-6 md:p-8 text-slate-800 shadow-sm relative overflow-hidden border border-gray-100">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-neutral-100/50 rounded-full filter blur-3xl opacity-40 -mr-20 -mt-20"></div>
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-neutral-100/50 rounded-full filter blur-3xl opacity-40 -ml-20 -mb-20"></div>
         
         <div className="relative z-10 max-w-3xl">
-          <span className="px-3 py-1 bg-indigo-500/20 text-indigo-300 text-xs font-semibold rounded-full uppercase tracking-wider border border-indigo-500/30">
+          <span className="px-3 py-1 bg-neutral-100 text-neutral-600 text-xs font-semibold rounded-full uppercase tracking-wider border border-neutral-200/50">
             Real-time Parsing Engine
           </span>
-          <h3 className="text-2xl font-bold mt-3">Target Career Matrix</h3>
-          <p className="text-indigo-200 mt-1 text-sm leading-relaxed">
+          <h3 className="text-2xl font-bold mt-3 text-slate-900">Target Career Matrix</h3>
+          <p className="text-slate-500 mt-1 text-sm leading-relaxed">
             Input any specialized career goal. Our backend maps the profile dynamically, fetches local taxonomy indices, and enables live 2026 web-crawls for exact real-time salary curves.
           </p>
           
@@ -136,7 +144,7 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
                 value={goalInput}
                 onChange={(e) => setGoalInput(e.target.value)}
                 placeholder="e.g. AI Product Manager, Bioinformatician, UI/UX Designer..."
-                className="w-full bg-white/5 hover:bg-white/10 focus:bg-white border border-white/10 focus:border-indigo-400 text-white focus:text-gray-900 rounded-xl px-4 py-3.5 text-sm focus:outline-none transition-all shadow-inner placeholder-white/40"
+                className="w-full bg-neutral-50 hover:bg-neutral-100/70 focus:bg-white border border-neutral-200 focus:border-black text-gray-900 rounded-xl px-4 py-3.5 text-sm focus:outline-none transition-all shadow-sm placeholder-gray-400"
                 disabled={loading || refreshing}
               />
               {refreshing && (
@@ -150,7 +158,7 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
               <button
                 type="submit"
                 disabled={loading || refreshing}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-3.5 rounded-xl text-sm transition-colors shadow-md hover:shadow-lg disabled:bg-indigo-600/50 flex-shrink-0 flex items-center gap-1.5"
+                className="bg-black hover:bg-neutral-800 text-white border border-black font-semibold px-6 py-3.5 rounded-xl text-sm transition-all shadow-sm hover:shadow disabled:bg-neutral-200 disabled:text-neutral-400 flex-shrink-0 flex items-center gap-1.5"
               >
                 {loading ? (
                   <>
@@ -163,7 +171,7 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
                 type="button"
                 onClick={() => fetchTrends(goalInput, true)}
                 disabled={loading || refreshing}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-5 py-3.5 rounded-xl text-sm transition-colors shadow-md hover:shadow-lg disabled:bg-emerald-600/50 flex-shrink-0 flex items-center gap-1.5"
+                className="bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-200 font-semibold px-5 py-3.5 rounded-xl text-sm transition-colors shadow-sm hover:shadow disabled:bg-neutral-50 disabled:text-neutral-400 flex-shrink-0 flex items-center gap-1.5"
                 title="Perform live Google web search crawl"
               >
                 {refreshing ? (
@@ -183,13 +191,13 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
           
           {/* Target Suggestions */}
           <div className="mt-4 flex flex-wrap gap-2 items-center">
-            <span className="text-xs text-indigo-300 font-medium">Domain Suggestions:</span>
+            <span className="text-xs text-neutral-500 font-medium">Domain Suggestions:</span>
             {[
-              { label: '🤖 AI Product Manager', goal: 'AI Product Manager' },
-              { label: '🧬 Bioinformatician', goal: 'Bioinformatician' },
-              { label: '📊 Financial Analyst', goal: 'Financial Analyst' },
-              { label: '🎨 UX Designer', goal: 'UX Designer' },
-              { label: '☁️ Cloud Architect', goal: 'Cloud Architect' }
+              { label: 'AI Product Manager', goal: 'AI Product Manager' },
+              { label: 'Bioinformatician', goal: 'Bioinformatician' },
+              { label: 'Financial Analyst', goal: 'Financial Analyst' },
+              { label: 'UX Designer', goal: 'UX Designer' },
+              { label: 'Cloud Architect', goal: 'Cloud Architect' }
             ].map((sugg) => (
               <button
                 key={sugg.goal}
@@ -198,7 +206,7 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
                   fetchTrends(sugg.goal);
                 }}
                 disabled={loading || refreshing}
-                className="text-xs px-3 py-1.5 bg-white/5 hover:bg-white/10 text-indigo-200 border border-white/5 hover:border-white/15 rounded-full transition-all"
+                className="text-xs px-3 py-1.5 bg-neutral-50 hover:bg-neutral-100 text-neutral-600 border border-neutral-200 hover:border-neutral-300 rounded-full transition-all"
               >
                 {sugg.label}
               </button>
@@ -245,21 +253,21 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {trends.stat_cards.map((s, i) => {
               const Icon = iconMap[s.icon_type] || Briefcase
-              const colorGradients = [
-                'from-blue-600 to-indigo-600',
-                'from-purple-600 to-pink-600',
-                'from-emerald-600 to-teal-600',
-                'from-orange-600 to-amber-600'
+              const cardColors = [
+                { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-100/30' },
+                { bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-100/30' },
+                { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-100/30' },
+                { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-100/30' }
               ]
-              const grad = colorGradients[i % colorGradients.length]
+              const color = cardColors[i % cardColors.length]
               return (
-                <div key={i} className="bg-white rounded-xl border border-gray-100 hover:border-gray-200 shadow-sm p-5 flex items-center gap-4 transition-all hover:shadow-md">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center flex-shrink-0 shadow-sm`}>
-                    <Icon size={22} className="text-white" />
+                <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4 transition-all hover:shadow-md hover:border-gray-200/60">
+                  <div className={`w-12 h-12 rounded-xl ${color.bg} ${color.text} flex items-center justify-center flex-shrink-0`}>
+                    <Icon size={22} />
                   </div>
                   <div>
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">{s.label}</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-0.5">{s.value}</p>
+                    <p className="text-xs text-gray-500 font-medium tracking-tight">{s.label}</p>
+                    <p className="text-2xl font-bold text-slate-900 mt-0.5 leading-none">{s.value}</p>
                   </div>
                 </div>
               )
@@ -269,19 +277,19 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
           {/* Navigation Tabs */}
           <div className="flex gap-2 flex-wrap bg-gray-100/50 p-1.5 rounded-xl border border-gray-200/50 self-start">
             {[
-              { key: 'skills',   label: '🔥 In-Demand Skills' },
-              { key: 'roles',    label: '💼 Salary Benchmarks' },
-              { key: 'paths',    label: '🗺️ Career roadmap'      },
-              { key: 'domains',  label: '🏢 Hiring sectors'  },
-              { key: 'gap',      label: '🎯 Target Skill Gap'    },
+              { key: 'skills',   label: 'In-Demand Skills' },
+              { key: 'roles',    label: 'Salary Benchmarks' },
+              { key: 'paths',    label: 'Career Roadmap' },
+              { key: 'domains',  label: 'Hiring Sectors' },
+              { key: 'gap',      label: 'Target Skill Gap' },
             ].map(t => (
               <button
                 key={t.key}
                 onClick={() => setActiveTab(t.key)}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                   activeTab === t.key
-                    ? 'bg-white text-indigo-900 shadow-sm font-bold border border-gray-200/40'
-                    : 'text-gray-500 hover:text-gray-900 hover:bg-white/50'
+                    ? 'bg-black text-white shadow-sm font-bold'
+                    : 'text-gray-500 hover:text-black hover:bg-white/50'
                 }`}
               >
                 {t.label}
@@ -302,12 +310,12 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
                   <div className="flex items-center gap-3 self-end sm:self-auto">
                     <button
                       onClick={handleTakeMeToRecommender}
-                      className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-xl text-xs transition-all shadow-sm hover:shadow flex items-center gap-1.5"
+                      className="bg-black hover:bg-neutral-800 text-white font-semibold px-4 py-2 rounded-xl text-xs transition-all shadow-sm hover:shadow flex items-center gap-1.5"
                     >
                       <Sparkles size={14} />
                       Take Me to Recommender
                     </button>
-                    <span className="text-xs bg-indigo-50 text-indigo-700 font-bold px-2.5 py-1 rounded-full border border-indigo-100 flex-shrink-0">
+                    <span className="text-xs bg-neutral-50 text-neutral-800 font-bold px-2.5 py-1 rounded-full border border-neutral-200 flex-shrink-0">
                       Live Indexed
                     </span>
                   </div>
@@ -331,7 +339,7 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
                       </div>
                       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                         <div
-                          className="h-full rounded-full transition-all duration-1000"
+                          className="h-full rounded-full transition-all duration-1000 opacity-80"
                           style={{ width: `${s.demand}%`, background: s.color }}
                         />
                       </div>
@@ -389,7 +397,12 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
                     <div className={`${c.bg} rounded-2xl border ${c.border} p-6 md:p-8 shadow-sm`}>
                       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
                         <div className="flex items-center gap-3">
-                          <span className="text-3xl p-2.5 bg-white shadow-sm border border-gray-100 rounded-2xl">{cp.icon}</span>
+                          <span className="p-2.5 bg-white shadow-sm border border-gray-100 rounded-2xl flex items-center justify-center">
+                            {(() => {
+                              const IconComponent = categoryIconMap[cp.icon] || Briefcase
+                              return <IconComponent className="text-slate-700" size={24} />
+                            })()}
+                          </span>
                           <div>
                             <h4 className="font-extrabold text-gray-900 text-lg capitalize">{cp.path} Trajectory</h4>
                             <p className="text-xs text-gray-500 font-medium">Estimated timeline: <span className="font-semibold text-gray-700">{cp.time}</span></p>
@@ -404,8 +417,8 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
                       <div className="space-y-6 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200">
                         {cp.steps.map((step, j) => (
                           <div key={j} className="flex items-start gap-4 relative">
-                            <div className="w-7 h-7 rounded-full bg-white border-2 border-indigo-600 flex items-center justify-center flex-shrink-0 z-10">
-                              <span className="text-[10px] font-extrabold text-indigo-600">{j + 1}</span>
+                            <div className="w-7 h-7 rounded-full bg-white border-2 border-black flex items-center justify-center flex-shrink-0 z-10">
+                              <span className="text-[10px] font-extrabold text-black">{j + 1}</span>
                             </div>
                             <div className="bg-white border border-gray-100 shadow-sm rounded-xl p-4 flex-grow hover:shadow-md transition-shadow">
                               <h5 className="font-bold text-gray-800 text-sm">{step}</h5>
@@ -417,7 +430,7 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
 
                       <div className="flex items-center justify-between border-t border-gray-200/50 mt-6 pt-5 flex-wrap gap-2 text-sm">
                         <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Estimated Base Return</span>
-                        <span className="font-extrabold text-indigo-950 text-base">{cp.salary}</span>
+                        <span className="font-extrabold text-neutral-900 text-base">{cp.salary}</span>
                       </div>
                     </div>
                   )
@@ -471,7 +484,7 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
                         </div>
                         <button
                           onClick={handleTakeMeToRecommender}
-                          className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-1.5"
+                          className="bg-black hover:bg-neutral-800 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-1.5"
                         >
                           <Sparkles size={16} />
                           Take Me to Recommender
@@ -479,7 +492,7 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
                       </div>
 
                       {/* Circular Gauge Alignment Panel */}
-                      <div className="flex flex-col md:flex-row items-center justify-around p-6 md:p-8 bg-gradient-to-r from-indigo-50/50 via-slate-50 to-indigo-50/30 rounded-2xl border border-indigo-100/50 shadow-sm gap-6">
+                      <div className="flex flex-col md:flex-row items-center justify-around p-6 md:p-8 bg-neutral-50 rounded-2xl border border-neutral-150 shadow-sm gap-6">
                         <div className="relative w-36 h-36 flex items-center justify-center">
                           <svg className="w-full h-full transform -rotate-90">
                             <circle
@@ -494,7 +507,7 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
                               cx="72"
                               cy="72"
                               r="60"
-                              className="stroke-indigo-600 transition-all duration-1000 ease-out"
+                              className="stroke-black transition-all duration-1000 ease-out"
                               strokeWidth="10"
                               fill="transparent"
                               strokeDasharray={2 * Math.PI * 60}
@@ -504,13 +517,13 @@ const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
                           </svg>
                           <div className="absolute text-center">
                             <p className="text-3xl font-black text-slate-800">{gap.match_percentage}%</p>
-                            <p className="text-[9px] text-indigo-600 font-extrabold uppercase tracking-wider mt-0.5">Match Index</p>
+                            <p className="text-[9px] text-neutral-800 font-extrabold uppercase tracking-wider mt-0.5">Match Index</p>
                           </div>
                         </div>
                         <div className="max-w-md text-center md:text-left">
                           <h4 className="text-lg font-bold text-gray-900">Career Competency Overlap</h4>
                           <p className="text-sm text-gray-500 mt-1.5 leading-relaxed">
-                            Your PostgreSQL profile registers <span className="font-extrabold text-indigo-600">{gap.matched_skills.length}</span> out of the <span className="font-extrabold text-slate-800">{trends.in_demand_skills.length}</span> critical skills required to transition into a <span className="font-extrabold text-slate-900 uppercase tracking-tight">{activeGoal}</span>.
+                            Your PostgreSQL profile registers <span className="font-extrabold text-black">{gap.matched_skills.length}</span> out of the <span className="font-extrabold text-slate-800">{trends.in_demand_skills.length}</span> critical skills required to transition into a <span className="font-extrabold text-slate-900 uppercase tracking-tight">{activeGoal}</span>.
                           </p>
                         </div>
                       </div>
