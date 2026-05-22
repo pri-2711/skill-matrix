@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Target, Award, FolderKanban, TrendingUp } from 'lucide-react'
+import { Target, Award, FolderKanban, TrendingUp, Star } from 'lucide-react'
 import api from '../api/apiClient'
 
 const Overview = () => {
@@ -127,7 +127,7 @@ const Overview = () => {
                     <span className="text-[10px] font-bold text-blue-700 bg-blue-100/50 px-2.5 py-1 rounded-full uppercase tracking-wider">
                       {course.matched_skill}
                     </span>
-                    {course.rating && <span className="text-xs font-semibold text-gray-700 flex items-center gap-1 shadow-sm bg-white px-2 py-0.5 rounded-full">⭐ {course.rating}</span>}
+                    {course.rating && <span className="text-xs font-semibold text-gray-700 flex items-center gap-1 shadow-sm bg-white px-2 py-0.5 rounded-full"><Star size={12} className="text-amber-400 fill-amber-400" /> {course.rating}</span>}
                   </div>
                   <h4 className="font-semibold text-gray-900 leading-tight line-clamp-2" title={course.course_title}>{course.course_title}</h4>
                   <p className="text-xs text-gray-500 mt-2 capitalize font-medium">{course.level || 'All Levels'} • {course.platform}</p>

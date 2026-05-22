@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Award, Plus, Calendar, Trash2, Edit2, ExternalLink } from 'lucide-react'
 import Modal from '../components/Modal'
-import api from '../api/apiClient'
+import api, { API_BASE_URL } from '../api/apiClient'
 
 const iconColors = [
   'bg-purple-100 text-purple-600',
@@ -122,7 +122,7 @@ const Certifications = () => {
                   <div className="flex items-center gap-2">
                     <h4 className="font-medium text-gray-900">{cert.title}</h4>
                     {cert.credential_url && (
-                      <a href={`http://localhost:5000${cert.credential_url}`} target="_blank" rel="noopener noreferrer">
+                      <a href={`${API_BASE_URL || 'http://localhost:5000'}${cert.credential_url}`} target="_blank" rel="noopener noreferrer">
                         <ExternalLink size={14} className="text-blue-500 hover:text-blue-700" />
                       </a>
                     )}

@@ -6,13 +6,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-DB_CONFIG = {
-    "host": "localhost",
-    "database": "skill_matrix",
-    "user": "postgres",
-    "password": "postgres123",
-    "port": 5432
-}
+import os
+DB_CONFIG = os.environ.get("DATABASE_URL") or "postgresql://neondb_owner:npg_m2TOBrAkDG3c@ep-polished-sky-ap87bjo1-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 
 
 DOMAIN_KEYWORDS = {
@@ -67,7 +62,14 @@ IMPORTANT_PHRASES = [
 
 
 def fetch_courses_from_db():
-    conn = psycopg2.connect(**DB_CONFIG)
+    import os
+    os.environ.pop("PGUSER", None)
+    os.environ.pop("PGPASSWORD", None)
+    os.environ.pop("PGDATABASE", None)
+    os.environ.pop("PGHOST", None)
+    os.environ.pop("PGPORT", None)
+
+    conn = psycopg2.connect(DB_CONFIG)
     cursor = conn.cursor()
 
     query = """

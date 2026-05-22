@@ -1,39 +1,47 @@
 import psycopg2
 
 def get_connection():
-    return psycopg2.connect(
-        dbname="skill_matrix",
-        user="postgres",
-        password="postgres123",
-        host="localhost",
-        port="5432"
-    )
+    import os
+    db_url = os.environ.get("DATABASE_URL") or "postgresql://neondb_owner:npg_m2TOBrAkDG3c@ep-polished-sky-ap87bjo1-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    
+    # Sanitize env to prevent libpq overrides
+    os.environ.pop("PGUSER", None)
+    os.environ.pop("PGPASSWORD", None)
+    os.environ.pop("PGDATABASE", None)
+    os.environ.pop("PGHOST", None)
+    os.environ.pop("PGPORT", None)
+    return psycopg2.connect(db_url)
 
 def ensure_schema():
-    # First, connect to default 'postgres' database to ensure 'skill_matrix' exists
-    try:
-        temp_conn = psycopg2.connect(
-            dbname="postgres",
-            user="postgres",
-            password="postgres123",
-            host="localhost",
-            port="5432"
-        )
-        temp_conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
-        temp_cur = temp_conn.cursor()
-        
-        # Check if database exists
-        temp_cur.execute("SELECT 1 FROM pg_catalog.pg_database WHERE datname = 'skill_matrix';")
-        exists = temp_cur.fetchone()
-        
-        if not exists:
-            print("Database 'skill_matrix' does not exist. Creating...")
-            temp_cur.execute("CREATE DATABASE skill_matrix;")
-        
-        temp_cur.close()
-        temp_conn.close()
-    except Exception as e:
-        print(f"Warning: Could not check/create database 'skill_matrix': {e}")
+    # Only check/create database locally
+    import os
+    db_url = os.environ.get("DATABASE_URL") or "postgresql://neondb_owner:npg_m2TOBrAkDG3c@ep-polished-sky-ap87bjo1-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    is_local = "localhost" in db_url or "127.0.0.1" in db_url
+    
+    if is_local:
+        try:
+            temp_conn = psycopg2.connect(
+                dbname="postgres",
+                user="postgres",
+                password="maansi27",
+                host="localhost",
+                port="5432"
+            )
+            temp_conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+            temp_cur = temp_conn.cursor()
+            
+            # Check if database exists
+            temp_cur.execute("SELECT 1 FROM pg_catalog.pg_database WHERE datname = 'skill_matrix';")
+            exists = temp_cur.fetchone()
+            
+            if not exists:
+                print("Database 'skill_matrix' does not exist. Creating...")
+                temp_cur.execute("CREATE DATABASE skill_matrix;")
+            
+            temp_cur.close()
+            temp_conn.close()
+        except Exception as e:
+            print(f"Warning: Could not check/create database 'skill_matrix': {e}")
 
     conn = get_connection()
     cur = conn.cursor()
