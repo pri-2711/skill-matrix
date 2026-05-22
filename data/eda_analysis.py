@@ -3,8 +3,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import math
 
+import os
+
 # Load data
-df = pd.read_excel("D:/MINOR-PROJECT/skill_matrix/data/temp_review/temp_normalized_df.xlsx")
+df = pd.read_excel(os.path.join(os.path.dirname(__file__), "temp_review", "temp_normalized_df.xlsx"))
 
 # Convert review_count
 df["review_count"] = pd.to_numeric(df["review_count"], errors="coerce")

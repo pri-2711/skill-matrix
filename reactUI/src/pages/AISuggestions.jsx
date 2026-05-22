@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Sparkles, Search, Loader2, ExternalLink } from 'lucide-react'
 import api from '../api/apiClient'
 
@@ -9,9 +9,12 @@ const AISuggestions = () => {
   const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
+  const [redirectedTargetSkills, setRedirectedTargetSkills] = useState([])
+  const [redirectedMissingSkills, setRedirectedMissingSkills] = useState([])
 
-  const handleAnalyze = async () => {
-    if (!careerGoal.trim()) {
+  const handleAnalyze = async (overrideGoal) => {
+    const goalToUse = typeof overrideGoal === 'string' ? overrideGoal : careerGoal
+    if (!goalToUse.trim()) {
       alert('Please enter a career goal')
       return
     }
@@ -34,7 +37,7 @@ const AISuggestions = () => {
 
       const data = await api.post('/recommendations', {
         current_skills: skills,
-        goal: careerGoal,
+        goal: goalToUse,
         top_k: topK,
       })
       setRecommendations(data.recommendations || [])
@@ -45,6 +48,32 @@ const AISuggestions = () => {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    const savedGoal = localStorage.getItem('redirect_career_goal')
+    if (savedGoal) {
+      setCareerGoal(savedGoal)
+      localStorage.removeItem('redirect_career_goal')
+      
+      const targetSkills = localStorage.getItem('redirect_target_skills')
+      if (targetSkills) {
+        try {
+          setRedirectedTargetSkills(JSON.parse(targetSkills))
+        } catch (_) {}
+        localStorage.removeItem('redirect_target_skills')
+      }
+      
+      const missingSkills = localStorage.getItem('redirect_missing_skills')
+      if (missingSkills) {
+        try {
+          setRedirectedMissingSkills(JSON.parse(missingSkills))
+        } catch (_) {}
+        localStorage.removeItem('redirect_missing_skills')
+      }
+
+      handleAnalyze(savedGoal)
+    }
+  }, [])
 
   const platformColors = {
     Udemy:      'bg-purple-100 text-purple-700',
@@ -119,6 +148,54 @@ const AISuggestions = () => {
           </div>
         </div>
       </div>
+
+      {(redirectedTargetSkills.length > 0 || redirectedMissingSkills.length > 0) && (
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100/80 p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-extrabold text-indigo-950 uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles size={14} className="text-indigo-600 animate-pulse" />
+              Imported Market Trends Context
+            </h4>
+            <button
+              onClick={() => {
+                setRedirectedTargetSkills([])
+                setRedirectedMissingSkills([])
+              }}
+              className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+            >
+              Clear Context
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {redirectedTargetSkills.length > 0 && (
+              <div>
+                <p className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider mb-1.5">Target Skills</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {redirectedTargetSkills.map((sk, idx) => (
+                    <span key={idx} className="text-[10px] px-2 py-0.5 bg-indigo-100/60 text-indigo-800 rounded-md font-semibold border border-indigo-200/40">
+                      {sk}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {redirectedMissingSkills.length > 0 && (
+              <div>
+                <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-1.5">Target Skill Gap (Missing)</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {redirectedMissingSkills.map((sk, idx) => (
+                    <span key={idx} className="text-[10px] px-2 py-0.5 bg-amber-100/60 text-amber-800 rounded-md font-semibold border border-amber-200/40">
+                      {sk}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {searched && !loading && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">

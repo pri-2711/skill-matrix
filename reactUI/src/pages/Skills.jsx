@@ -32,7 +32,7 @@ const Skills = () => {
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingId, setEditingId] = useState(null)
-  const [newSkill, setNewSkill] = useState({ name: '', category: 'Programming', customCategory: '', level: 50 })
+  const [newSkill, setNewSkill] = useState({ name: '', category: 'Programming', customCategory: '', level: 'Intermediate' })
 
   const fetchSkills = async () => {
     try {
@@ -48,7 +48,7 @@ const Skills = () => {
   useEffect(() => { fetchSkills() }, [])
 
   const openAddModal = () => {
-    setNewSkill({ name: '', category: 'Programming', customCategory: '', level: 50 })
+    setNewSkill({ name: '', category: 'Programming', customCategory: '', level: 'Intermediate' })
     setEditingId(null)
     setIsModalOpen(true)
   }
@@ -59,7 +59,7 @@ const Skills = () => {
       name: skill.name, 
       category: isStandard ? skill.category : 'Other', 
       customCategory: isStandard ? '' : skill.category, 
-      level: skill.level 
+      level: skill.proficiency_level || 'Intermediate' 
     })
     setEditingId(skill.id)
     setIsModalOpen(true)
@@ -71,7 +71,7 @@ const Skills = () => {
       const finalCategory = newSkill.category === 'Other' ? (newSkill.customCategory || 'Other') : newSkill.category
       const payload = {
         skill_name: `${newSkill.name} [${finalCategory}]`,
-        proficiency_level: percentToLevel(newSkill.level),
+        proficiency_level: newSkill.level,
       }
       
       if (editingId) {
@@ -148,12 +148,14 @@ const Skills = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <span className="font-medium text-gray-900">{skill.name}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${skill.color}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${skill.color}`}>
                       {skill.category}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-gray-600">{skill.level}%</span>
+                    <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-indigo-50 text-indigo-700 border border-indigo-150 shadow-sm">
+                      {skill.proficiency_level}
+                    </span>
                     <button
                       onClick={() => openEditModal(skill)}
                       className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
@@ -245,17 +247,25 @@ const Skills = () => {
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Proficiency Level: {newSkill.level}%
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Proficiency Level
             </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={newSkill.level}
-              onChange={(e) => setNewSkill({ ...newSkill, level: parseInt(e.target.value) })}
-              className="w-full"
-            />
+            <div className="grid grid-cols-4 gap-2">
+              {['Beginner', 'Intermediate', 'Advanced', 'Expert'].map((lvl) => (
+                <button
+                  key={lvl}
+                  type="button"
+                  onClick={() => setNewSkill({ ...newSkill, level: lvl })}
+                  className={`py-2 px-1 text-xs font-semibold rounded-lg border text-center transition-all ${
+                    newSkill.level === lvl
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  {lvl}
+                </button>
+              ))}
+            </div>
           </div>
           <button
             type="submit"
