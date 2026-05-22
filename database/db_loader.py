@@ -2,13 +2,16 @@ import psycopg2
 import pandas as pd
 
 def get_connection():
-    return psycopg2.connect(
-        dbname="skill_matrix",
-        user="postgres",
-        password="maansi27",
-        host="localhost",
-        port="5432"
-    )
+    import os
+    db_url = os.environ.get("DATABASE_URL") or "postgresql://neondb_owner:npg_m2TOBrAkDG3c@ep-polished-sky-ap87bjo1-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    
+    # Sanitize env to prevent libpq overrides
+    os.environ.pop("PGUSER", None)
+    os.environ.pop("PGPASSWORD", None)
+    os.environ.pop("PGDATABASE", None)
+    os.environ.pop("PGHOST", None)
+    os.environ.pop("PGPORT", None)
+    return psycopg2.connect(db_url)
 
 def standardize_platforms(conn):
     cur = conn.cursor()
