@@ -31,7 +31,7 @@ function App() {
       case 'ai-suggestions':
         return <AISuggestions />
       case 'market-trends':
-        return <MarketTrends />
+        return <MarketTrends setActiveTab={setActiveTab} />
       case 'resume-builder':
         return <ResumeBuilder />
       default:

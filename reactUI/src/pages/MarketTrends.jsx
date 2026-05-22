@@ -39,7 +39,7 @@ const CustomTooltip = ({ active, payload }) => {
   return null
 }
 
-const MarketTrends = () => {
+const MarketTrends = ({ setActiveTab: setParentActiveTab }) => {
   const [goalInput, setGoalInput] = useState('AI Product Manager')
   const [activeGoal, setActiveGoal] = useState('')
   const [trends, setTrends] = useState(null)
@@ -47,6 +47,24 @@ const MarketTrends = () => {
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState('skills')
+
+  const handleTakeMeToRecommender = () => {
+    if (!activeGoal) return
+    localStorage.setItem('redirect_career_goal', activeGoal)
+    if (trends) {
+      if (trends.in_demand_skills) {
+        const skills = trends.in_demand_skills.map(s => s.skill)
+        localStorage.setItem('redirect_target_skills', JSON.stringify(skills))
+      }
+      if (trends.user_skill_gap && trends.user_skill_gap.missing_skills) {
+        const missing = trends.user_skill_gap.missing_skills.map(s => s.skill || s)
+        localStorage.setItem('redirect_missing_skills', JSON.stringify(missing))
+      }
+    }
+    if (setParentActiveTab) {
+      setParentActiveTab('ai-suggestions')
+    }
+  }
 
   const fetchTrends = (targetGoal, forceRefresh = false) => {
     if (!targetGoal) return
@@ -276,14 +294,23 @@ const MarketTrends = () => {
             {/* In-Demand Skills */}
             {activeTab === 'skills' && (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                <div className="flex justify-between items-start mb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900">Expertise Frequency Index</h3>
                     <p className="text-sm text-gray-400 mt-0.5">Top credentials required for {activeGoal} (2026 data)</p>
                   </div>
-                  <span className="text-xs bg-indigo-50 text-indigo-700 font-bold px-2.5 py-1 rounded-full border border-indigo-100">
-                    Live Indexed
-                  </span>
+                  <div className="flex items-center gap-3 self-end sm:self-auto">
+                    <button
+                      onClick={handleTakeMeToRecommender}
+                      className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-xl text-xs transition-all shadow-sm hover:shadow flex items-center gap-1.5"
+                    >
+                      <Sparkles size={14} />
+                      Take Me to Recommender
+                    </button>
+                    <span className="text-xs bg-indigo-50 text-indigo-700 font-bold px-2.5 py-1 rounded-full border border-indigo-100 flex-shrink-0">
+                      Live Indexed
+                    </span>
+                  </div>
                 </div>
                 <div className="space-y-5">
                   {trends.in_demand_skills.map((s, i) => (
@@ -437,6 +464,20 @@ const MarketTrends = () => {
                   const gap = trends.user_skill_gap
                   return (
                     <div className="space-y-6">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900">Skill Gap Analysis</h3>
+                          <p className="text-sm text-gray-400 mt-0.5">Analyze missing credentials for {activeGoal}</p>
+                        </div>
+                        <button
+                          onClick={handleTakeMeToRecommender}
+                          className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-1.5"
+                        >
+                          <Sparkles size={16} />
+                          Take Me to Recommender
+                        </button>
+                      </div>
+
                       {/* Circular Gauge Alignment Panel */}
                       <div className="flex flex-col md:flex-row items-center justify-around p-6 md:p-8 bg-gradient-to-r from-indigo-50/50 via-slate-50 to-indigo-50/30 rounded-2xl border border-indigo-100/50 shadow-sm gap-6">
                         <div className="relative w-36 h-36 flex items-center justify-center">

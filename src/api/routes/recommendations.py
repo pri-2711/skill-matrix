@@ -101,6 +101,12 @@ def get_recommendations():
         # Add up to 0.4 bonus for exact/partial title matches
         df["final_score"] += 0.40 * df["title_boost"]
 
+    # Scale down scores to be within [0.0, 1.0] only if the maximum score is above 1.0
+    max_score = df["final_score"].max()
+    if max_score > 1.0:
+        df["final_score"] = df["final_score"] / max_score
+    df["final_score"] = df["final_score"].clip(0.0, 1.0)
+
     # Sort, drop duplicates by course_title, take top K
     recommended = df.sort_values("final_score", ascending=False).drop_duplicates(subset=["course_title"], keep="first").head(top_k)
 
